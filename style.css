@@ -1,25 +1,361 @@
+/* === RAMADAN 2026 - Light Mode with Colorful Animations === */
+
+/* Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Poppins:wght@300;400;600;700&display=swap');
+
+/* CSS Variables */
+:root {
+    --primary-green: #10B981;
+    --neon-green: #34D399;
+    --primary-gold: #F59E0B;
+    --neon-gold: #FBBF24;
+    --accent-pink: #EC4899;
+    --accent-sky: #3B82F6;
+    --text-dark: #1F2937;
+}
+
+/* Base Styles */
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f8f9fa;
-    user-select: none; /* Text selection disable for app-like feel */
+    font-family: 'Poppins', 'Segoe UI', Tahoma, sans-serif;
+    background: linear-gradient(135deg, #E0F7FA 0%, #FFFFFF 50%, #FFF8E1 100%);
+    background-attachment: fixed;
+    user-select: none;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+    color: var(--text-dark);
 }
 
+/* === ANIMATED BACKGROUND ORBS === */
+body::before {
+    content: '';
+    position: fixed;
+    top: -10%;
+    left: -10%;
+    width: 120%;
+    height: 120%;
+    background: 
+        radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.2) 0%, transparent 40%),
+        radial-gradient(circle at 80% 80%, rgba(245, 158, 11, 0.2) 0%, transparent 40%),
+        radial-gradient(circle at 40% 60%, rgba(236, 72, 153, 0.15) 0%, transparent 30%),
+        radial-gradient(circle at 90% 10%, rgba(59, 130, 246, 0.15) 0%, transparent 30%);
+    animation: floatingOrbs 15s ease-in-out infinite alternate;
+    pointer-events: none;
+    z-index: 0;
+}
+
+@keyframes floatingOrbs {
+    0% { transform: translate(0, 0) rotate(0deg); }
+    33% { transform: translate(30px, -50px) rotate(120deg); }
+    66% { transform: translate(-30px, 20px) rotate(240deg); }
+    100% { transform: translate(0, 0) rotate(360deg); }
+}
+
+/* Floating Particles */
+body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        radial-gradient(2px 2px at 10% 20%, rgba(245, 158, 11, 0.8), transparent),
+        radial-gradient(2px 2px at 30% 50%, rgba(16, 185, 129, 0.8), transparent),
+        radial-gradient(2px 2px at 50% 10%, rgba(236, 72, 153, 0.8), transparent),
+        radial-gradient(2px 2px at 70% 80%, rgba(59, 130, 246, 0.8), transparent);
+    background-repeat: repeat;
+    background-size: 400px 400px;
+    animation: particleFloat 20s linear infinite;
+    pointer-events: none;
+    z-index: 0;
+}
+
+@keyframes particleFloat {
+    0% { transform: translateY(0) scale(1); opacity: 0.5; }
+    50% { opacity: 1; }
+    100% { transform: translateY(-100%) scale(1.5); opacity: 0; }
+}
+
+.container {
+    position: relative;
+    z-index: 1;
+}
+
+/* === HEADER ANIMATIONS === */
+h2 {
+    font-family: 'Amiri', serif;
+    font-size: 2.2rem;
+    background: linear-gradient(90deg, var(--primary-green), var(--accent-sky), var(--accent-pink), var(--primary-gold), var(--primary-green));
+    background-size: 300% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: gradientShift 4s ease-in-out infinite;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Moon Icon Color Pulse */
+h2 i {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--primary-gold), var(--accent-pink));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: iconPop 2s ease-in-out infinite;
+    filter: drop-shadow(0 0 5px rgba(245, 158, 11, 0.5));
+}
+
+@keyframes iconPop {
+    0%, 100% { transform: scale(1) rotate(-5deg); filter: drop-shadow(0 0 5px rgba(245, 158, 11, 0.5)); }
+    50% { transform: scale(1.2) rotate(5deg); filter: drop-shadow(0 0 15px rgba(236, 72, 153, 0.8)); }
+}
+
+#current-date {
+    color: #6B7280 !important;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+/* Location Badge Pulse */
+#location-box {
+    background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(240,253,244,0.9)) !important;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: var(--primary-green) !important;
+    font-weight: 600;
+    animation: borderPulse 2s infinite;
+}
+
+@keyframes borderPulse {
+    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+/* === COUNTDOWN CARD === */
 .card {
-    background: linear-gradient(to bottom right, #ffffff, #f0fdf4);
+    background: rgba(255, 255, 255, 0.85) !important;
+    backdrop-filter: blur(15px);
+    border: none !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05) !important;
+    position: relative;
+    overflow: hidden;
 }
 
+/* Animated Rainbow Top Border */
+.card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 200%;
+    height: 6px;
+    background: linear-gradient(90deg, var(--primary-green), var(--accent-sky), var(--accent-pink), var(--primary-gold), var(--primary-green));
+    background-size: 200% 100%;
+    animation: borderMove 3s linear infinite;
+}
+
+@keyframes borderMove {
+    0% { background-position: 0% 0%; transform: translateX(0); }
+    100% { background-position: 200% 0%; transform: translateX(-50%); }
+}
+
+/* Glowing Background Animation inside Card */
+.card::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(245, 158, 11, 0.1) 0%, transparent 70%);
+    transform: translate(-50%, -50%);
+    animation: glowPulse 3s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes glowPulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+    50% { transform: translate(-50%, -50%) scale(1.5); opacity: 0.8; }
+}
+
+#status-text {
+    color: #6B7280 !important;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    animation: textFade 2s infinite;
+}
+
+@keyframes textFade {
+    0%, 100% { opacity: 0.7; }
+    50% { opacity: 1; color: var(--primary-green); }
+}
+
+/* Countdown Number Color Animation */
 #countdown {
-    font-family: 'Courier New', Courier, monospace;
-    letter-spacing: -2px;
+    font-family: 'Poppins', monospace;
+    font-size: 3.5rem !important;
+    letter-spacing: 2px;
+    background: linear-gradient(45deg, var(--text-dark), var(--primary-green), var(--accent-sky));
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: countColorShift 3s ease infinite;
+    position: relative;
+    z-index: 2;
 }
 
-/* Install Button Animation */
+@keyframes countColorShift {
+    0% { background-position: 0% center; }
+    50% { background-position: 100% center; }
+    100% { background-position: 0% center; }
+}
+
+/* === TIME CARDS === */
+.row.g-3 > div {
+    animation: fadeInUp 0.6s ease forwards;
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.row.g-3 .p-3 {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid rgba(255, 255, 255, 1);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Animated Bottom Borders for Cards */
+.row.g-3 > div:first-child .p-3 {
+    border-bottom: 4px solid var(--accent-sky);
+    box-shadow: 0 5px 15px rgba(59, 130, 246, 0.15);
+    animation: borderGlowBlue 2s infinite alternate;
+}
+
+@keyframes borderGlowBlue {
+    0% { border-bottom-color: var(--accent-sky); box-shadow: 0 5px 15px rgba(59, 130, 246, 0.15); }
+    100% { border-bottom-color: #60A5FA; box-shadow: 0 5px 25px rgba(96, 165, 250, 0.3); }
+}
+
+.row.g-3 > div:last-child .p-3 {
+    border-bottom: 4px solid var(--accent-pink);
+    box-shadow: 0 5px 15px rgba(236, 72, 153, 0.15);
+    animation: borderGlowPink 2s infinite alternate;
+}
+
+@keyframes borderGlowPink {
+    0% { border-bottom-color: var(--accent-pink); box-shadow: 0 5px 15px rgba(236, 72, 153, 0.15); }
+    100% { border-bottom-color: #F472B6; box-shadow: 0 5px 25px rgba(244, 114, 182, 0.3); }
+}
+
+/* Icon Animations */
+.text-warning {
+    color: var(--primary-gold) !important;
+    animation: iconFloat 3s ease-in-out infinite;
+}
+
+.text-danger {
+    color: var(--accent-pink) !important;
+    animation: iconFloat 3s ease-in-out infinite 0.5s;
+}
+
+@keyframes iconFloat {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    25% { transform: translateY(-5px) rotate(5deg); }
+    75% { transform: translateY(5px) rotate(-5deg); }
+}
+
+/* Time Text Shadow Animation */
+#sehri-time, #iftar-time {
+    color: var(--text-dark) !important;
+    font-size: 1.5rem !important;
+    font-weight: 700;
+    transition: all 0.3s ease;
+}
+
+.row.g-3 .p-3:hover #sehri-time,
+.row.g-3 .p-3:hover #iftar-time {
+    transform: scale(1.1);
+    text-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+/* === INSTALL BUTTON === */
 #install-btn {
-    animation: bounce 2s infinite;
+    background: linear-gradient(270deg, var(--primary-green), var(--neon-green), var(--primary-gold), var(--primary-green));
+    background-size: 300% 300%;
+    border: none !important;
+    color: #fff !important;
+    font-weight: 600;
+    animation: gradientShift 5s ease infinite, bounce 2s infinite;
+    box-shadow: 0 5px 20px rgba(16, 185, 129, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Shine Effect */
+#install-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+    animation: btnShine 3s infinite;
+}
+
+@keyframes btnShine {
+    0% { left: -100%; }
+    50%, 100% { left: 100%; }
 }
 
 @keyframes bounce {
     0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
-    40% {transform: translateY(-10px);}
-    60% {transform: translateY(-5px);}
+    40% {transform: translateY(-8px);}
+    60% {transform: translateY(-4px);}
+}
+
+/* Footer */
+.text-muted.small {
+    color: #9CA3AF !important;
+}
+
+/* Decorative Rotating Moon */
+.container::before {
+    content: '☪';
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    font-size: 3rem;
+    color: rgba(245, 158, 11, 0.15);
+    animation: rotateMoon 60s linear infinite;
+    z-index: 0;
+}
+
+@keyframes rotateMoon {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+    h2 { font-size: 1.6rem; }
+    #countdown { font-size: 2.8rem !important; }
+    .container::before { font-size: 2rem; top: 10px; right: 10px; }
+}
+
+/* Selection */
+::selection {
+    background: rgba(245, 158, 11, 0.3);
+    color: var(--text-dark);
 }
