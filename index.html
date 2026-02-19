@@ -40,7 +40,7 @@
             <!-- Main Countdown -->
             <div id="countdown" class="display-3 fw-bold text-success my-2">--:--:--</div>
             
-            <!-- New Current Time Section -->
+            <!-- Current Time -->
             <div class="border-top pt-2 w-75 mx-auto">
                 <span class="text-muted small">বর্তমান সময়:</span>
                 <span id="current-clock" class="fw-bold text-primary ms-1" style="font-family: 'Courier New', monospace; font-size: 1.1rem;">
@@ -51,7 +51,7 @@
         </div>
     </div>
 
-    <!-- Prayer Times Grid -->
+    <!-- Today's Prayer Times Grid -->
     <div class="row g-3">
         <!-- Sehri -->
         <div class="col-6">
@@ -71,10 +71,30 @@
         </div>
     </div>
 
+    <!-- NEW: Tomorrow's Time Section -->
+    <div class="card shadow-sm border-0 rounded-4 text-center mt-3 bg-white bg-opacity-75">
+        <div class="card-body py-2">
+            <p class="text-secondary small fw-bold mb-2 border-bottom d-inline-block px-3">
+                <i class="bi bi-calendar-check"></i> আগামীকালের সময়সূচী
+            </p>
+            <div class="d-flex justify-content-center align-items-center gap-4">
+                <div class="text-center">
+                    <small class="text-muted d-block" style="font-size: 0.9rem;">সাহরি শেষ</small>
+                    <span id="tom-sehri" class="fw-bold text-dark">--:--</span>
+                </div>
+                <div class="vr text-secondary"></div>
+                <div class="text-center">
+                    <small class="text-muted d-block" style="font-size: 0.9rem;">ইফতার শুরু</small>
+                    <span id="tom-iftar" class="fw-bold text-dark">--:--</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Install Button (Hidden by default) -->
-    <div class="mt-5 text-center">
+    <div class="mt-4 text-center">
         <button id="install-btn" class="btn btn-success w-100 rounded-pill py-3 shadow" style="display: none;">
-            <i class="bi bi-download me-2"></i> অ্যাপটি মোবাইলে ইন্সটল করুন
+            <i class="bi bi-download me-2"></i> অ্যাপটি ইন্সটল করুন
         </button>
         <p class="text-muted small mt-2">GPS অন রাখুন সঠিক সময়ের জন্য</p>
     </div>
