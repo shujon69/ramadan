@@ -105,11 +105,11 @@ function startLiveTimer() {
         const sehriTimeStr = addMinutes(todayData.sehri, currentOffset);
         const iftarTimeStr = addMinutes(todayData.iftar, currentOffset);
 
-        // ৩. UI তে সময় দেখানো
+        // ৩. UI তে সময় আপডেট (AM/PM সহ) - এখানে ফিক্স করা হয়েছে
         sehriEl.innerText = formatTime12(sehriTimeStr);
         iftarEl.innerText = formatTime12(iftarTimeStr);
 
-        // ৪. বর্তমান সময় আপডেট করা (NEW FEATURE)
+        // ৪. বর্তমান সময় আপডেট করা
         updateCurrentClock(now);
 
         // ৫. Date Object তৈরি
@@ -159,8 +159,10 @@ function startLiveTimer() {
 }
 
 // ==========================================
-// নতুন হেল্পার: বর্তমান ঘড়ি আপডেট
+// হেল্পার ফাংশন
 // ==========================================
+
+// বর্তমান ঘড়ি আপডেট
 function updateCurrentClock(now) {
     let hours = now.getHours();
     let minutes = now.getMinutes();
@@ -178,9 +180,7 @@ function updateCurrentClock(now) {
     if(clockEl) clockEl.innerText = strTime;
 }
 
-// ==========================================
-// অন্যান্য হেল্পার ফাংশন
-// ==========================================
+// টাইম স্ট্রিং থেকে ডেট বানানো
 function createDateFromTime(timeStr, isIftar) {
     let [hours, minutes] = timeStr.split(':').map(Number);
     if (isIftar && hours < 12) hours += 12;
@@ -192,6 +192,7 @@ function createDateFromTime(timeStr, isIftar) {
     return date;
 }
 
+// মিনিট যোগ/বিয়োগ
 function addMinutes(timeStr, minutesToAdd) {
     let [hours, minutes] = timeStr.split(':').map(Number);
     const date = new Date();
@@ -202,12 +203,16 @@ function addMinutes(timeStr, minutesToAdd) {
     return `${h}:${m < 10 ? '0'+m : m}`;
 }
 
+// ✅ ১২ ঘন্টার ফরম্যাট (AM/PM ফিক্সড)
 function formatTime12(time24) {
     let [hours, minutes] = time24.split(':');
-    let h = hours % 12 || 12;
-    return `${h}:${minutes}`;
+    let ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12; // 0 হলে 12 দেখাবে
+    return `${hours}:${minutes} ${ampm}`;
 }
 
+// অ্যালার্ম
 let alarmTriggered = false;
 function checkAlarm(targetTime, offsetMinutes) {
     const now = new Date();
