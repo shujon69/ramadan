@@ -56,29 +56,19 @@ function initApp() {
     const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
     dateBox.innerText = today.toLocaleDateString('bn-BD', options);
     
-    // প্রথমে ডিফল্ট টাইম (ঢাকা) দিয়ে শুরু হবে
     startLiveTimer();
-
-    // এরপর লোকেশন চেক করে টাইম আপডেট করবে
     getLocation();
 }
 
 // ==========================================
-// লোকেশন লজিক (রংপুর/সিলেট অটোমেটিক)
+// লোকেশন লজিক
 // ==========================================
 function getLocation() {
     if (navigator.geolocation) {
         locationBox.innerText = "📍 জিপিএস খোঁজা হচ্ছে...";
         navigator.geolocation.getCurrentPosition((position) => {
-            
             const userLon = position.coords.longitude;
             const dhakaLon = 90.4125; 
-            
-            // ক্যালকুলেশন:
-            // ঢাকা (90.4) - রংপুর (89.2) = +1.2 ডিগ্রি
-            // 1.2 * 4 মিনিট = +4.8 মিনিট (রাউন্ড করে ৫ মিনিট)
-            // তাই রংপুরের জন্য ৫ মিনিট যোগ হবে
-            
             const diffDeg = dhakaLon - userLon; 
             currentOffset = Math.round(diffDeg * 4);
 
@@ -108,39 +98,38 @@ function startLiveTimer() {
     timerInterval = setInterval(() => {
         const now = new Date();
 
-        // ১. ডাটাবেজ থেকে ১ম দিনের সময় নেওয়া (টেস্টিং পারপাস)
-        // এখন রমজান না হওয়ায় আমরা ১ম দিন ধরে টেস্ট করছি
+        // ১. ডাটাবেজ থেকে ১ম দিনের সময় নেওয়া (টেস্টিং)
         const todayData = dhakaCalendar[0]; 
 
-        // ২. জিপিএস অফসেট যোগ করা (রংপুরের জন্য এখানে টাইম বাড়বে)
+        // ২. জিপিএস অফসেট যোগ করা
         const sehriTimeStr = addMinutes(todayData.sehri, currentOffset);
         const iftarTimeStr = addMinutes(todayData.iftar, currentOffset);
 
-        // ৩. UI তে দেখানো (AM/PM সহ)
+        // ৩. UI তে সময় দেখানো
         sehriEl.innerText = formatTime12(sehriTimeStr);
         iftarEl.innerText = formatTime12(iftarTimeStr);
 
-        // ৪. Date Object তৈরি (AM/PM লজিক সহ)
-        const todaySehri = createDateFromTime(sehriTimeStr, false); // সাহরি (AM)
-        const todayIftar = createDateFromTime(iftarTimeStr, true);  // ইফতার (PM)
+        // ৪. বর্তমান সময় আপডেট করা (NEW FEATURE)
+        updateCurrentClock(now);
 
-        // ৫. লজিক চেক
+        // ৫. Date Object তৈরি
+        const todaySehri = createDateFromTime(sehriTimeStr, false); // AM
+        const todayIftar = createDateFromTime(iftarTimeStr, true);  // PM
+
+        // ৬. লজিক চেক
         let targetTime, mode;
 
         if (now < todaySehri) {
-            // ভোর ৫টার আগে
             targetTime = todaySehri;
             mode = "সাহরির বাকি";
             checkAlarm(targetTime, 15);
         } 
         else if (now >= todaySehri && now < todayIftar) {
-            // সাহরি শেষ, ইফতার বাকি
             targetTime = todayIftar;
             mode = "ইফতারের বাকি";
             checkAlarm(targetTime, 0);
         } 
         else {
-            // ইফতার শেষ -> আগামীকাল
             targetTime = new Date(todaySehri);
             targetTime.setDate(targetTime.getDate() + 1);
             mode = "পরবর্তী সাহরি";
@@ -148,9 +137,8 @@ function startLiveTimer() {
 
         statusText.innerText = mode;
         
-        // ৬. কাউন্টডাউন
+        // কাউন্টডাউন
         const diff = targetTime - now;
-        
         if (diff > 0) {
             const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
             const m = Math.floor((diff / (1000 * 60)) % 60);
@@ -171,19 +159,32 @@ function startLiveTimer() {
 }
 
 // ==========================================
-// হেল্পার ফাংশন
+// নতুন হেল্পার: বর্তমান ঘড়ি আপডেট
 // ==========================================
+function updateCurrentClock(now) {
+    let hours = now.getHours();
+    let minutes = now.getMinutes();
+    let seconds = now.getSeconds();
+    let ampm = hours >= 12 ? 'PM' : 'AM';
+    
+    hours = hours % 12;
+    hours = hours ? hours : 12; 
+    
+    minutes = minutes < 10 ? '0'+minutes : minutes;
+    seconds = seconds < 10 ? '0'+seconds : seconds;
+    
+    const strTime = `${hours}:${minutes}:${seconds} ${ampm}`;
+    const clockEl = document.getElementById('current-clock');
+    if(clockEl) clockEl.innerText = strTime;
+}
 
-// টাইম স্ট্রিং (05:58) থেকে ডেট বানানো
-// isIftar = true হলে ১২ ঘন্টা যোগ হবে (PM বানানোর জন্য)
+// ==========================================
+// অন্যান্য হেল্পার ফাংশন
+// ==========================================
 function createDateFromTime(timeStr, isIftar) {
     let [hours, minutes] = timeStr.split(':').map(Number);
-    
-    // ইফতার হলে PM বানাও (17:58)
     if (isIftar && hours < 12) hours += 12;
-    // সাহরি রাত ১২টা হলে ০০ বানাও
     if (!isIftar && hours === 12) hours = 0;
-
     const date = new Date();
     date.setHours(hours);
     date.setMinutes(minutes);
@@ -191,27 +192,22 @@ function createDateFromTime(timeStr, isIftar) {
     return date;
 }
 
-// মিনিট যোগ/বিয়োগ
 function addMinutes(timeStr, minutesToAdd) {
     let [hours, minutes] = timeStr.split(':').map(Number);
     const date = new Date();
     date.setHours(hours);
     date.setMinutes(minutes + minutesToAdd);
-    
     let h = date.getHours();
     let m = date.getMinutes();
     return `${h}:${m < 10 ? '0'+m : m}`;
 }
 
-// ১২ ঘন্টার ফরম্যাট
 function formatTime12(time24) {
     let [hours, minutes] = time24.split(':');
     let h = hours % 12 || 12;
-    // ডিসপ্লে করার সময় আমরা AM/PM দেখাচ্ছি না কারণ বক্সে লেখাই আছে
     return `${h}:${minutes}`;
 }
 
-// অ্যালার্ম
 let alarmTriggered = false;
 function checkAlarm(targetTime, offsetMinutes) {
     const now = new Date();
