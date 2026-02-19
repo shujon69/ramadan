@@ -42,7 +42,10 @@ const countdownEl = document.getElementById('countdown');
 const statusText = document.getElementById('status-text');
 const installBtn = document.getElementById('install-btn');
 const dateBox = document.getElementById('current-date');
-const alarmSound = new Audio('./alarm.mp3');
+
+// ✅ আযানের অডিও সেটআপ
+const alarmSound = new Audio('https://www.islamcan.com/audio/adhan/azan1.mp3');
+alarmSound.preload = 'auto';
 
 // গ্লোবাল ভেরিয়েবল
 let currentOffset = 0; 
@@ -98,36 +101,49 @@ function startLiveTimer() {
     timerInterval = setInterval(() => {
         const now = new Date();
 
-        // ১. ডাটাবেজ থেকে ১ম দিনের সময় নেওয়া (টেস্টিং)
+        // ১. ডাটা লোড
         const todayData = dhakaCalendar[0]; 
+        const tomorrowData = dhakaCalendar[1];
 
-        // ২. জিপিএস অফসেট যোগ করা
+        // ২. অফসেট যোগ করা (আজকের)
         const sehriTimeStr = addMinutes(todayData.sehri, currentOffset);
         const iftarTimeStr = addMinutes(todayData.iftar, currentOffset);
 
-        // ৩. UI তে সময় আপডেট (AM/PM সহ) - এখানে ফিক্স করা হয়েছে
+        // ৩. অফসেট যোগ করা (আগামীকালের)
+        if(tomorrowData) {
+            const tomSehri = addMinutes(tomorrowData.sehri, currentOffset);
+            const tomIftar = addMinutes(tomorrowData.iftar, currentOffset);
+            const tomSehriEl = document.getElementById('tom-sehri');
+            const tomIftarEl = document.getElementById('tom-iftar');
+            if(tomSehriEl) tomSehriEl.innerText = formatTime12(tomSehri);
+            if(tomIftarEl) tomIftarEl.innerText = formatTime12(tomIftar);
+        }
+
+        // ৪. UI আপডেট
         sehriEl.innerText = formatTime12(sehriTimeStr);
         iftarEl.innerText = formatTime12(iftarTimeStr);
 
-        // ৪. বর্তমান সময় আপডেট করা
+        // ৫. বর্তমান ঘড়ি
         updateCurrentClock(now);
 
-        // ৫. Date Object তৈরি
+        // ৬. ডেট অবজেক্ট (AM/PM ফিক্সড)
         const todaySehri = createDateFromTime(sehriTimeStr, false); // AM
         const todayIftar = createDateFromTime(iftarTimeStr, true);  // PM
 
-        // ৬. লজিক চেক
+        // ৭. লজিক চেক
         let targetTime, mode;
 
         if (now < todaySehri) {
             targetTime = todaySehri;
             mode = "সাহরির বাকি";
-            checkAlarm(targetTime, 15);
+            // সাহরির জন্য: ১৫ মিনিট আগে নোটিফিকেশন, সাউন্ড বন্ধ (false)
+            checkAlarm(targetTime, 15, false);
         } 
         else if (now >= todaySehri && now < todayIftar) {
             targetTime = todayIftar;
             mode = "ইফতারের বাকি";
-            checkAlarm(targetTime, 0);
+            // ইফতারের জন্য: ০ মিনিটে সাউন্ড চালু (true) - অটো প্লে হবে
+            checkAlarm(targetTime, 0, true);
         } 
         else {
             targetTime = new Date(todaySehri);
@@ -150,7 +166,7 @@ function startLiveTimer() {
 
     }, 1000);
 
-    // সাউন্ড ইনিশিয়াল
+    // সাউন্ড ইনিশিয়াল (একবার স্ক্রিনে টাচ করলেই সাউন্ড আনলক হবে)
     document.body.addEventListener('click', () => {
         alarmSound.play().then(() => {
             alarmSound.pause(); alarmSound.currentTime = 0;
@@ -162,25 +178,54 @@ function startLiveTimer() {
 // হেল্পার ফাংশন
 // ==========================================
 
-// বর্তমান ঘড়ি আপডেট
+// ✅ ফিক্সড অ্যালার্ম লজিক
+let alarmTriggered = false;
+function checkAlarm(targetTime, offsetMinutes, playSound) {
+    const now = new Date();
+    // অ্যালার্ম টাইম বের করা
+    const alarmTime = new Date(targetTime.getTime() - offsetMinutes * 60000);
+    
+    // ১ মিনিটের উইন্ডো সেট করা (এটিই আগের সমস্যার সমাধান)
+    const windowEnd = new Date(alarmTime.getTime() + 60000);
+
+    // যদি বর্তমান সময় অ্যালার্ম টাইমের মধ্যে পড়ে
+    if (now >= alarmTime && now < windowEnd && !alarmTriggered) {
+        
+        // শুধু ইফতার হলে আযান প্লে হবে
+        if (playSound) {
+            alarmSound.play().catch((e) => console.log("Sound Autoplay Blocked:", e));
+        }
+
+        // নোটিফিকেশন
+        let msg = playSound ? "ইফতারের সময় হয়েছে! 🕌" : `সাহরি শেষ হতে আর ${offsetMinutes} মিনিট বাকি! ⏳`;
+        
+        if (Notification.permission === "granted") {
+            new Notification("রমজান অ্যালার্ট", {
+                body: msg,
+                icon: './icon.png'
+            });
+        }
+        
+        alarmTriggered = true;
+        
+        // ৩ মিনিট পর রিসেট (যাতে আযান পুরোটা বাজে)
+        setTimeout(() => alarmTriggered = false, 180000);
+    }
+}
+
 function updateCurrentClock(now) {
     let hours = now.getHours();
     let minutes = now.getMinutes();
     let seconds = now.getSeconds();
     let ampm = hours >= 12 ? 'PM' : 'AM';
-    
-    hours = hours % 12;
-    hours = hours ? hours : 12; 
-    
+    hours = hours % 12; hours = hours ? hours : 12; 
     minutes = minutes < 10 ? '0'+minutes : minutes;
     seconds = seconds < 10 ? '0'+seconds : seconds;
-    
     const strTime = `${hours}:${minutes}:${seconds} ${ampm}`;
     const clockEl = document.getElementById('current-clock');
     if(clockEl) clockEl.innerText = strTime;
 }
 
-// টাইম স্ট্রিং থেকে ডেট বানানো
 function createDateFromTime(timeStr, isIftar) {
     let [hours, minutes] = timeStr.split(':').map(Number);
     if (isIftar && hours < 12) hours += 12;
@@ -192,7 +237,6 @@ function createDateFromTime(timeStr, isIftar) {
     return date;
 }
 
-// মিনিট যোগ/বিয়োগ
 function addMinutes(timeStr, minutesToAdd) {
     let [hours, minutes] = timeStr.split(':').map(Number);
     const date = new Date();
@@ -203,35 +247,13 @@ function addMinutes(timeStr, minutesToAdd) {
     return `${h}:${m < 10 ? '0'+m : m}`;
 }
 
-// ✅ ১২ ঘন্টার ফরম্যাট (AM/PM ফিক্সড)
 function formatTime12(time24) {
     let [hours, minutes] = time24.split(':');
     let ampm = hours >= 12 ? 'PM' : 'AM';
-    hours = hours % 12;
-    hours = hours ? hours : 12; // 0 হলে 12 দেখাবে
+    hours = hours % 12; hours = hours ? hours : 12;
     return `${hours}:${minutes} ${ampm}`;
 }
 
-// অ্যালার্ম
-let alarmTriggered = false;
-function checkAlarm(targetTime, offsetMinutes) {
-    const now = new Date();
-    const alarmTime = new Date(targetTime.getTime() - offsetMinutes * 60000);
-
-    if (now >= alarmTime && now < targetTime && !alarmTriggered) {
-        alarmSound.play().catch(() => {});
-        if (Notification.permission === "granted") {
-            new Notification("⏰ অ্যালার্ম", {
-                body: `সময় হতে আর মাত্র ${offsetMinutes} মিনিট বাকি!`,
-                icon: './icon.png'
-            });
-        }
-        alarmTriggered = true;
-        setTimeout(() => alarmTriggered = false, 120000);
-    }
-}
-
-// PWA ইন্সটল
 let deferredPrompt;
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
